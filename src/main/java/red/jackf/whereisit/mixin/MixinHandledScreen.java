@@ -2,8 +2,8 @@ package red.jackf.whereisit.mixin;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.client.gui.screen.ingame.ContainerScreen;
+import net.minecraft.container.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,7 +14,7 @@ import red.jackf.whereisit.WhereIsItClient;
 // Where HandledScreen features are present
 
 @Environment(EnvType.CLIENT)
-@Mixin(HandledScreen.class)
+@Mixin(ContainerScreen.class)
 public abstract class MixinHandledScreen {
 
     @Accessor(value = "focusedSlot")

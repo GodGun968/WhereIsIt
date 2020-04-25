@@ -8,7 +8,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -64,14 +64,14 @@ public class WhereIsIt implements ModInitializer {
 
 					List<BlockPos> positions = new LinkedList<>();
 
-					for (int y = Math.max(-FIND_ITEM_RADIUS + basePos.getY(), 0); y < Math.min(FIND_ITEM_RADIUS + 1 + basePos.getY(), world.getDimensionHeight()); y++) {
+					for (int y = Math.max(-FIND_ITEM_RADIUS + basePos.getY(), 0); y < Math.min(FIND_ITEM_RADIUS + 1 + basePos.getY(), world.getHeight()); y++) {
 						for (int x = -FIND_ITEM_RADIUS + basePos.getX(); x < FIND_ITEM_RADIUS + 1 + basePos.getX(); x++) {
 							for (int z = -FIND_ITEM_RADIUS + basePos.getZ(); z < FIND_ITEM_RADIUS + 1 + basePos.getZ(); z++) {
 								BlockPos checkPos = new BlockPos(x, y, z);
 								BlockEntity be = world.getBlockEntity(checkPos);
 								if (be instanceof Inventory) {
 									Inventory inv = (Inventory) be;
-									if (inv.containsAny(findSet)) {
+									if (inv.containsAnyInInv(findSet)) {
 										positions.add(checkPos);
 										closeScreen = true;
 									}
@@ -89,7 +89,7 @@ public class WhereIsIt implements ModInitializer {
 					}
 
 					if (closeScreen) {
-						((ServerPlayerEntity) packetContext.getPlayer()).closeHandledScreen();
+						((ServerPlayerEntity) packetContext.getPlayer()).closeContainer();
 					}
 
 				});

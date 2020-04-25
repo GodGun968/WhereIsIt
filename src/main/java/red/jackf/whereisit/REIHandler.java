@@ -19,7 +19,7 @@ import java.util.List;
 @SuppressWarnings("UnstableApiUsage")
 @Environment(EnvType.CLIENT)
 public class REIHandler {
-    private REIHandler() {};
+    private REIHandler() {}
 
     public static Item findREIItems(double mouseX, double mouseY) {
         // Big List
@@ -49,7 +49,7 @@ public class REIHandler {
                 Widget widget = (Widget) element;
                 if (widget instanceof EntryWidget && widget.containsMouse(mouseX, mouseY)) {
                     EntryWidget entryWidget = (EntryWidget) widget;
-                    for (EntryStack entryStack : entryWidget.getEntries()) {
+                    for (EntryStack entryStack : entryWidget.entries()) {
                         if (entryStack instanceof ItemEntryStack) {
                             return entryStack.getItem();
                         }

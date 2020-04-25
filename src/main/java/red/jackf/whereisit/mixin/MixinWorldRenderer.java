@@ -3,11 +3,11 @@ package red.jackf.whereisit.mixin;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.ShapeContext;
+//import net.minecraft.block.ShapeContext;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Matrix4f;
+import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import org.spongepowered.asm.mixin.Final;
@@ -40,7 +40,7 @@ public class MixinWorldRenderer {
             1, 256,
             RenderLayer.MultiPhaseParameters.builder()
                     .lineWidth(new RenderPhase.LineWidth(OptionalDouble.empty()))
-                    .depthTest(new RenderPhase.DepthTest("pass", 519))
+                    .depthTest(new RenderPhase.DepthTest(519))
                     .transparency(WII_Transparency)
                     .build(false)
             );
@@ -53,7 +53,7 @@ public class MixinWorldRenderer {
 
     @Shadow private ClientWorld world;
 
-    @Inject(method= "render(Lnet/minecraft/client/util/math/MatrixStack;FJZLnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/GameRenderer;Lnet/minecraft/client/render/LightmapTextureManager;Lnet/minecraft/util/math/Matrix4f;)V",
+    @Inject(method= "render(Lnet/minecraft/client/util/math/MatrixStack;FJZLnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/GameRenderer;Lnet/minecraft/client/render/LightmapTextureManager;Lnet/minecraft/client/util/math/Matrix4f;)V",
             at=@At(value = "TAIL"))
     public void renderFoundItemOverlay(MatrixStack matrices,
                                        float tickDelta,
