@@ -8,6 +8,10 @@
   "authors": [
     "JackFred"
   ],
+  "contact": {
+    "issues": "https://github.com/JackFred2/WhereIsIt/issues",
+    "homepage": "https://github.com/JackFred2/WhereIsIt"
+  },
 
   "license": "MIT",
   "icon": "assets/whereisit/icon.png",
@@ -31,6 +35,6 @@
     "minecraft": "1.15.2"
   },
   "suggests": {
-    "flamingo": "*"
+    "roughlyenoughitems": ">=3.6.x"
   }
 }
