@@ -23,6 +23,9 @@
     ],
     "client": [
       "red.jackf.whereisit.WhereIsItClient"
+    ],
+    "modmenu": [
+      "red.jackf.whereisit.compat.ModMenuHandler"
     ]
   },
   "mixins": [
