@@ -26,8 +26,6 @@ import static red.jackf.whereisit.WhereIsIt.id;
 
 @Environment(EnvType.CLIENT)
 public class WhereIsItClient implements ClientModInitializer {
-    public static final int FOUND_ITEMS_LIFESPAN = 140;
-
     public static class FoundItemPos {
         public BlockPos pos;
         public long time;

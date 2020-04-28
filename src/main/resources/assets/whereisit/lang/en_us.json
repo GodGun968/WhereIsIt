@@ -1,3 +1,9 @@
 {
-    "key.whereisit.find_items": "Find Nearby Items"
+    "key.whereisit.find_items": "Find Nearby Items",
+    "text.autoconfig.whereisit.option.searchRadius": "Item search radius",
+    "text.autoconfig.whereisit.option.outlineR": "Block outline colour §cR",
+    "text.autoconfig.whereisit.option.outlineG": "Block outline colour §aG",
+    "text.autoconfig.whereisit.option.outlineB": "Block outline colour §bB",
+    "text.autoconfig.whereisit.option.fadeOutTime": "Fade out time",
+    "text.autoconfig.whereisit.option.fadeOutTime.@Tooltip": "Time for the outline to fade out in ticks"
 }
