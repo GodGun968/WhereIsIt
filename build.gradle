@@ -1,11 +1,7 @@
-import com.modrinth.minotaur.TaskModrinthUpload
-
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'io.github.juuxel.loom-quiltflower' version '1.7.1'
 	id 'maven-publish'
-	id 'idea'
-	id 'com.matthewprenger.cursegradle' version '1.4.0'
-	id "com.modrinth.minotaur" version "1.2.1"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -15,33 +11,79 @@ archivesBaseName = "${project.archives_base_name}-${project.minecraft_version}"
 version = project.mod_version
 group = project.maven_group
 
-minecraft {
-}
-
-// Custom Repos
 repositories {
-	maven { url = "https://maven.fabricmc.net" } // Fabric
-	maven { url = "https://maven.shedaniel.me/" } // REI & Cloth Config
-	maven { url = 'https://maven.terraformersmc.com/' } // ModMenu
+	maven {
+		name = "ParchmentMC"
+		url = "https://maven.parchmentmc.org"
+		content {
+			includeGroupByRegex("org.parchmentmc.*")
+		}
+	}
+	maven {
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/"
+		content {
+			includeGroupByRegex("com.terraformersmc.*")
+		}
+	}
+	maven {
+		name = "Shedaniel Maven"
+		url = "https://maven.shedaniel.me/"
+		content {
+			includeGroupByRegex("me.shedaniel.*")
+		}
+	}
+	maven {
+		name = "Jitpack"
+		url = "https://jitpack.io"
+		content {
+			includeGroupByRegex("com.gitlab.Lortseam.*")
+		}
+	}
+	maven {
+		name = "Siphalor" // Coat, dependency for complete conifg
+		url = "https://maven.siphalor.de"
+		content {
+			includeGroup("de.siphalor")
+		}
+	}
+	maven {
+		name = "Architectury"
+		url = "https://maven.architectury.dev/"
+		content {
+			includeGroup("dev.architectury")
+		}
+	}
 }
 
 dependencies {
-	//to change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	// To change the versions see the gradle.properties file
+	minecraft("com.mojang:minecraft:${project.minecraft_version}")
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${project.parchment_version}@zip")
+	}
+	modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+	modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
 
-    // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-	// You may need to force-disable transitiveness on them.
-	modImplementation "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-
-	modImplementation "me.shedaniel.cloth.api:cloth-client-events-v0:${project.cloth_client_version}"
-
-	modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+	// 04/06/2022: crash with bundled architectury version
+	// TODO: remove exclude stuff
+	modImplementation("dev.architectury:architectury-fabric:${project.rei_architectury_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}") {
+		exclude(group: "dev.architectury", module: "architectury-fabric")
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+		exclude(group: "dev.architectury", module: "architectury-fabric")
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
 }
 
 processResources {
@@ -52,97 +94,37 @@ processResources {
 	}
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-tasks.withType(JavaCompile) {
-	options.encoding = "UTF-8"
+tasks.withType(JavaCompile).configureEach {
+	// Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
+	it.options.release = 17
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
-	from sourceSets.main.allSource
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
 }
 
 jar {
-	from "LICENSE"
-}
-
-curseforge {
-	if (project.hasProperty("cf.key")) {
-		apiKey = project.findProperty("cf.key")
-		project {
-			id = "378036"
-			changelog = "Check the GitHub for changes: https://github.com/JackFred2/WhereIsIt"
-			releaseType = "release"
-
-			addGameVersion "Fabric"
-			addGameVersion "Java 17"
-
-			project.game_versions.tokenize(",").each { addGameVersion it }
-
-			mainArtifact(remapJar) {
-				relations {
-					requiredDependency("fabric-api")
-					optionalDependency("modmenu")
-					optionalDependency("roughly-enough-items")
-					requiredDependency("cloth-config")
-					requiredDependency("cloth-api")
-				}
-				displayName = "${project.prefix} ${archivesBaseName}-${version}.jar"
-			}
-
-		}
-
-		options {
-			forgeGradleIntegration = false
-		}
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}"}
 	}
-}
-
-task publishModrinth (type: TaskModrinthUpload){ // Make sure it runs after build!
-	onlyIf {
-		project.hasProperty("modrinth.key")
-	}
-
-	token = project.findProperty("modrinth.key")
-	projectId = 'FCTyEqkn'
-	versionNumber = project.mod_version
-	versionName = "Where Is It $project.mod_version"
-	uploadFile = remapJar
-	changelog = "Check the GitHub for changes: https://github.com/JackFred2/WhereIsIt"
-	project.game_versions.tokenize(",").each { addGameVersion it }
-	addLoader('fabric')
 }
 
 // configure the maven publication
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 
-	// select the repositories you want to publish to
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		maven {
-			name = "GitHubPackages"
-			url = uri("https://maven.pkg.github.com/jackfred2/WhereIsIt")
-			credentials {
-				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-			}
-		}
-		mavenLocal()
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
 	}
 }
