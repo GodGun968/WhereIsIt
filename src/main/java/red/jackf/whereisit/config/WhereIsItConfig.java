@@ -7,7 +7,11 @@ import me.shedaniel.autoconfig.serializer.ConfigSerializer;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Jankson;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import red.jackf.whereisit.WhereIsIt;
+
+import java.util.List;
 
 @Config(name = WhereIsIt.MOD_ID)
 public class WhereIsItConfig implements ConfigData {
@@ -22,16 +26,19 @@ public class WhereIsItConfig implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public ServerOptions server = new ServerOptions();
 
-    static class ClientOptions {
+    public static class ClientOptions {
         @Comment("Highlight fade time in ticks (20 ticks = 1 second)")
         @ConfigEntry.BoundedDiscrete(min = 40, max = 600)
         public int highlightFadeTime = 200;
     }
 
-    static class ServerOptions {
+    public static class ServerOptions {
         @Comment("Search radius in blocks")
         @ConfigEntry.BoundedDiscrete(min = 8, max = 64)
-        int searchRange = 32;
+        public int searchRange = 32;
+
+        @Comment("Command names - removing all of these disables the command.")
+        public List<String> commandNames = List.of("whereis", "wi", "find");
     }
 
     public static <T extends ConfigData> ConfigSerializer<T> getSerializer(Config configDefinition, Class<T> configClass) {
