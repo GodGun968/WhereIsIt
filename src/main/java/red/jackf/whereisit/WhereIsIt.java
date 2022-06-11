@@ -3,6 +3,7 @@ package red.jackf.whereisit;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.ResourceLocation;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import red.jackf.whereisit.command.WhereIsItCommand;
 import red.jackf.whereisit.command.argument.ItemTagArgument;
@@ -17,7 +18,7 @@ public class WhereIsIt implements ModInitializer {
 
 	public static WhereIsItConfig CONFIG;
 
-	public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {

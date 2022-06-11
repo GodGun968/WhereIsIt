@@ -13,11 +13,11 @@ import red.jackf.whereisit.search.InvalidSearchCriteriaException;
 /**
  * Search for an itemstack via it's name, minus formatting.
  */
-public class NameSearchCriteria extends SearchCriteria {
+public class NameSearchCriteria implements SearchCriteria<String> {
     public static final String NAME_KEY = "Name";
 
     @Override
-    public Predicate fromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
+    public Predicate predicateFromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
         if (!tag.contains(NAME_KEY, Tag.TAG_STRING)) {
             throw new InvalidSearchCriteriaException("No name key passed in nbt: " + tag);
         }
@@ -32,20 +32,9 @@ public class NameSearchCriteria extends SearchCriteria {
     }
 
     @Override
-    public CompoundTag parseString(String input) throws InvalidSearchCriteriaException {
+    public CompoundTag tagFromType(String input) {
         var tag = new CompoundTag();
         tag.putString(NAME_KEY, input);
-        return tag;
-    }
-
-    @Override
-    public ArgumentType<?> getArgumentType(CommandBuildContext context) {
-        return StringArgumentType.string();
-    }
-
-    public CompoundTag fromStack(ItemStack stack) {
-        var tag = new CompoundTag();
-        tag.putString(NAME_KEY, stack.getHoverName().getString());
         return tag;
     }
 }

@@ -6,15 +6,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import red.jackf.whereisit.search.InvalidSearchCriteriaException;
 
-public abstract class SearchCriteria {
+public interface SearchCriteria<T> {
 
-    public abstract SearchCriteria.Predicate fromTag(CompoundTag tag) throws InvalidSearchCriteriaException;
+    SearchCriteria.Predicate predicateFromTag(CompoundTag tag) throws InvalidSearchCriteriaException;
 
-    public abstract CompoundTag parseString(String input) throws InvalidSearchCriteriaException;
+    CompoundTag tagFromType(T input);
 
-    public abstract ArgumentType<?> getArgumentType(CommandBuildContext context);
-
-    public interface Predicate {
+    interface Predicate {
         boolean test(ItemStack in);
 
         static Predicate any(Iterable<Predicate> predicates) {

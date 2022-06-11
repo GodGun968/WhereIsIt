@@ -16,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import red.jackf.whereisit.compat.WhereIsItREICompat;
 import red.jackf.whereisit.mixins.AccessorAbstractContainerScreen;
-import red.jackf.whereisit.search.SearchCriteriaRegistry;
 import red.jackf.whereisit.search.SearchRequest;
 
 @Environment(EnvType.CLIENT)
@@ -33,30 +32,37 @@ public class WhereIsItClient implements ClientModInitializer {
         // Hovering over item and pressing Y on a stack
         ScreenEvents.BEFORE_INIT.register((client, _screen, scaledWidth, scaledHeight) -> ScreenKeyboardEvents.afterKeyPress(_screen).register((screen, key, scancode, modifiers) -> {
             if (SEARCH_KEY.matches(key, scancode)) {
-                boolean preciseSearch = Screen.hasShiftDown();
+                boolean alternateBehaviour = Screen.hasShiftDown();
 
                 if (screen instanceof AbstractContainerScreen<?> containerScreen) {
                     // Standard Inventory Stacks
                     var stack = getHoveredInventoryStack(containerScreen);
                     if (stack != null) {
-                        SearchRequest.fromItemStack(stack, preciseSearch).trigger();
+                        SearchRequest.fromItemStack(stack, alternateBehaviour).trigger();
                         return;
                     }
                 }
 
                 if (FabricLoader.getInstance().isModLoaded("roughlyenoughitems")) {
-                    // Item List / Favourite List
-                    var reiStack = WhereIsItREICompat.getOverlayStack();
-                    if (reiStack != null) {
-                        SearchRequest.fromItemStack(reiStack, preciseSearch).trigger();
+                    // Item List
+                    var entryListStack = WhereIsItREICompat.getEntryListStack();
+                    if (entryListStack != null) {
+                        SearchRequest.fromItemStack(entryListStack, alternateBehaviour).trigger();
+                        return;
+                    }
+
+                    // Favourite List
+                    var favouriteListStack = WhereIsItREICompat.getFavouriteListStack();
+                    if (favouriteListStack != null) {
+                        SearchRequest.fromItemStack(favouriteListStack, !alternateBehaviour).trigger();
                         return;
                     }
 
                     // Recipe Screen
-                    var recipeStacks = WhereIsItREICompat.getRecipeStacks(screen, preciseSearch);
+                    var recipeStacks = WhereIsItREICompat.getRecipeStacks(screen, alternateBehaviour);
                     if (!recipeStacks.isEmpty()) {
                         new SearchRequest.Builder()
-                            .withCriteria(SearchCriteriaRegistry.ITEMS_KEY, SearchCriteriaRegistry.ITEMS.fromItems(recipeStacks))
+                            .withItems(recipeStacks)
                             .build()
                             .trigger();
                     }

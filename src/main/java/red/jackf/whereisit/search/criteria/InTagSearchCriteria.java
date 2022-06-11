@@ -11,11 +11,11 @@ import net.minecraft.world.item.Item;
 import red.jackf.whereisit.command.argument.ItemTagArgument;
 import red.jackf.whereisit.search.InvalidSearchCriteriaException;
 
-public class InTagSearchCriteria extends SearchCriteria {
+public class InTagSearchCriteria implements SearchCriteria<TagKey<Item>> {
     public static final String TAG_ID_KEY = "Tag";
 
     @Override
-    public Predicate fromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
+    public Predicate predicateFromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
         if (!tag.contains(TAG_ID_KEY, Tag.TAG_STRING)) {
             throw new InvalidSearchCriteriaException("No tag key passed in nbt: " + tag);
         }
@@ -26,26 +26,10 @@ public class InTagSearchCriteria extends SearchCriteria {
         return stack -> stack.is(TagKey.create(Registry.ITEM_REGISTRY, id));
     }
 
-    public CompoundTag parseString(String input) throws InvalidSearchCriteriaException {
-        var id = ResourceLocation.tryParse(input);
-        if (id == null) {
-            throw new InvalidSearchCriteriaException("Not a valid ResourceLocation: " + input);
-        }
-        var key = TagKey.create(Registry.ITEM_REGISTRY, id);
-        if (!Registry.ITEM.isKnownTagName(key)) {
-            throw new InvalidSearchCriteriaException("Unknown item tag: " + input);
-        }
-        return fromTagKey(key);
-    }
-
-    public CompoundTag fromTagKey(TagKey<Item> key) {
-        var tag = new CompoundTag();
-        tag.putString(TAG_ID_KEY, key.location().toString());
-        return tag;
-    }
-
     @Override
-    public ArgumentType<?> getArgumentType(CommandBuildContext context) {
-        return ItemTagArgument.itemTag();
+    public CompoundTag tagFromType(TagKey<Item> input) {
+        var tag = new CompoundTag();
+        tag.putString(TAG_ID_KEY, input.location().toString());
+        return tag;
     }
 }

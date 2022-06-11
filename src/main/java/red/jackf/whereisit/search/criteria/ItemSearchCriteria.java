@@ -16,11 +16,11 @@ import java.util.List;
 /**
  * Matches by any of a list of item IDs.
  */
-public class ItemSearchCriteria extends SearchCriteria {
+public class ItemSearchCriteria implements SearchCriteria<List<Item>> {
     public static final String ITEMS_KEY = "Items";
 
     @Override
-    public Predicate fromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
+    public Predicate predicateFromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
         if (!tag.contains(ITEMS_KEY, Tag.TAG_LIST)) {
             throw new InvalidSearchCriteriaException("No item list passed in nbt: " + tag);
         }
@@ -32,41 +32,20 @@ public class ItemSearchCriteria extends SearchCriteria {
                 if (id == null) {
                     throw new InvalidSearchCriteriaException("Not a valid ResourceLocation: " + tag.getString(ITEMS_KEY));
                 }
+                if (!Registry.ITEM.containsKey(id)) {
+                    throw new InvalidSearchCriteriaException("Unknown item: " + id);
+                }
                 predicates.add(stack -> Registry.ITEM.getKey(stack.getItem()).equals(id));
             }
         }
         return Predicate.any(predicates);
     }
 
-    public CompoundTag parseString(String input) throws InvalidSearchCriteriaException {
-        var id = ResourceLocation.tryParse(input);
-        if (id == null) {
-            throw new InvalidSearchCriteriaException("Not a valid ResourceLocation: " + input);
-        }
-        var item = Registry.ITEM.get(id);
-        if (item == Items.AIR) {
-            throw new InvalidSearchCriteriaException("No item found with ID: " + input);
-        }
-        return fromItem(item);
-    }
-
     @Override
-    public ArgumentType<?> getArgumentType(CommandBuildContext context) {
-        return ItemArgument.item(context);
-    }
-
-    public CompoundTag fromItem(Item item) {
+    public CompoundTag tagFromType(List<Item> input) {
         var tag = new CompoundTag();
         var list  = new ListTag();
-        list.add(StringTag.valueOf(Registry.ITEM.getKey(item).toString()));
-        tag.put(ITEMS_KEY, list);
-        return tag;
-    }
-
-    public CompoundTag fromItems(List<Item> items) {
-        var tag = new CompoundTag();
-        var list  = new ListTag();
-        for (Item item : items) {
+        for (Item item : input) {
             list.add(StringTag.valueOf(Registry.ITEM.getKey(item).toString()));
         }
         tag.put(ITEMS_KEY, list);

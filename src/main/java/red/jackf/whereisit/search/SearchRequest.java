@@ -2,11 +2,16 @@ package red.jackf.whereisit.search;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import red.jackf.whereisit.WhereIsIt;
+import red.jackf.whereisit.util.EnchantmentWithOptionalLevel;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.swing.text.html.Option;
+import java.util.*;
 
 public class SearchRequest {
     public static final String CRITERIA_TYPE_KEY = "CriteriaType";
@@ -19,16 +24,30 @@ public class SearchRequest {
     /**
      * Creates a search request for a given itemstack. By default, this just searches for the item ID.
      * @param itemStack - Stack to search.
-     * @param precise - Be more precise in searching; this means looking for enchantments and custom names as well.
+     * @param alternateBehavior - Changes default search behaviour; this normally means being more precise.
      * @return Built search request
      */
-    public static SearchRequest fromItemStack(ItemStack itemStack, boolean precise) {
+    public static SearchRequest fromItemStack(ItemStack itemStack, boolean alternateBehavior) {
         var builder = new Builder()
-            .withCriteria(SearchCriteriaRegistry.ITEMS_KEY, SearchCriteriaRegistry.ITEMS.fromItem(itemStack.getItem()));
+            .withItems(Collections.singletonList(itemStack.getItem()));
 
-        if (precise) {
+        if (itemStack.getItem() == Items.ENCHANTED_BOOK) {
+            var enchantments = EnchantmentHelper.getEnchantments(itemStack);
+            for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+                builder.withEnchantment(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (alternateBehavior) {
             if (itemStack.hasCustomHoverName()) {
-                builder.withCriteria(SearchCriteriaRegistry.NAME_KEY, SearchCriteriaRegistry.NAME.fromStack(itemStack));
+                builder.withName(itemStack.getHoverName().getString());
+            }
+
+            if (itemStack.getItem() != Items.ENCHANTED_BOOK) {
+                var enchantments = EnchantmentHelper.getEnchantments(itemStack);
+                for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+                    builder.withEnchantment(entry.getKey(), entry.getValue());
+                }
             }
         }
         return builder.build();
@@ -43,6 +62,23 @@ public class SearchRequest {
         private final List<CompoundTag> criteria = new ArrayList<>();
 
         public Builder() {}
+
+        public Builder withName(String name) {
+            return withCriteria(SearchCriteriaRegistry.NAME_KEY, SearchCriteriaRegistry.NAME.tagFromType(name));
+        }
+
+        public Builder withItems(List<Item> items) {
+            return withCriteria(SearchCriteriaRegistry.ITEMS_KEY, SearchCriteriaRegistry.ITEMS.tagFromType(items));
+        }
+
+        public Builder withEnchantment(Enchantment enchantment) {
+            return withEnchantment(enchantment, -1);
+        }
+
+        public Builder withEnchantment(Enchantment enchantment, int level) {
+            var enchantmentWithLevel = new EnchantmentWithOptionalLevel(enchantment, level == -1 ? Optional.empty() : Optional.of(level));
+            return withCriteria(SearchCriteriaRegistry.ENCHANTMENT_KEY, SearchCriteriaRegistry.ENCHANTMENT.tagFromType(enchantmentWithLevel));
+        }
 
         public Builder withCriteria(ResourceLocation key, CompoundTag data) {
             if (SearchCriteriaRegistry.CRITERIA.containsKey(key)) {

@@ -1,8 +1,11 @@
 package red.jackf.whereisit.command;
 
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.commands.CommandSourceStack;
 import red.jackf.whereisit.WhereIsIt;
 import red.jackf.whereisit.search.SearchCriteriaRegistry;
 
@@ -16,24 +19,15 @@ public class WhereIsItCommand {
             var names = WhereIsIt.CONFIG.server.commandNames;
             if (names.size() == 0) return;
 
-            var root = literal(names.get(0)).build();
-
-            SearchCriteriaRegistry.CRITERIA.forEach((id, criteria) -> {
-                var argName = literal(id.getPath())
-                    .then(
-                        argument(id.getPath(), criteria.getArgumentType(commandBuildContext))
-                            .redirect(root))
-                    .build();
-
-                root.addChild(argName);
-            });
+            var root = literal(names.get(0))
+                .build();
 
             dispatcher.getRoot().addChild(root);
-
-            for (int i = 1; i < names.size(); i++)
-                dispatcher.getRoot().addChild(literal(names.get(i))
-                    .redirect(root)
-                    .build());
         });
+    }
+
+    private static int execute(CommandContext<CommandSourceStack> context) {
+        System.out.println(context.getInput());
+        return 0;
     }
 }

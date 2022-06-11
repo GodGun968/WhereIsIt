@@ -24,10 +24,10 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 public class WhereIsItREICompat {
     /**
-     * Get a hovered stack from the item list / favourite panel, or `null` if not applicable.
+     * Get a hovered stack from the item list, or null if not applicable.
      */
     @Nullable
-    public static ItemStack getOverlayStack() {
+    public static ItemStack getEntryListStack() {
         var reiInstance = REIRuntime.getInstance();
         if (!reiInstance.isOverlayVisible()) return null;
         var overlay = reiInstance.getOverlay();
@@ -38,6 +38,16 @@ public class WhereIsItREICompat {
             return entryListStack.castValue();
         }
 
+        return null;
+    }
+
+    @Nullable
+    public static ItemStack getFavouriteListStack() {
+        var reiInstance = REIRuntime.getInstance();
+        if (!reiInstance.isOverlayVisible()) return null;
+        var overlay = reiInstance.getOverlay();
+        if (overlay.isEmpty()) return null;
+
         var favouriteList = overlay.get().getFavoritesList();
         if (favouriteList.isPresent()) {
             var favouriteListStack = favouriteList.get().getFocusedStack();
@@ -47,7 +57,6 @@ public class WhereIsItREICompat {
         }
 
         // TODO: support REI's Display recipes in the favourites menu
-
         return null;
     }
 
