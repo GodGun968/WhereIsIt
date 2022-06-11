@@ -19,11 +19,14 @@ public abstract class SearchCriteriaRegistry {
     public static NameSearchCriteria NAME = new NameSearchCriteria();
     public static ResourceLocation ENCHANTMENT_KEY = WhereIsIt.id("enchantment");
     public static EnchantmentSearchCriteria ENCHANTMENT = new EnchantmentSearchCriteria();
+    public static ResourceLocation MOB_EFFECT_KEY = WhereIsIt.id("mob_effect");
+    public static MobEffectSearchCriteria MOB_EFFECT = new MobEffectSearchCriteria();
 
     public static void init() {
         CRITERIA.put(ITEMS_KEY, ITEMS);
         CRITERIA.put(IN_TAG_KEY, IN_TAG);
         CRITERIA.put(NAME_KEY, NAME);
         CRITERIA.put(ENCHANTMENT_KEY, ENCHANTMENT);
+        CRITERIA.put(MOB_EFFECT_KEY, MOB_EFFECT);
     }
 }

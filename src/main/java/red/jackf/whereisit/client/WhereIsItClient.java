@@ -61,10 +61,8 @@ public class WhereIsItClient implements ClientModInitializer {
                     // Recipe Screen
                     var recipeStacks = WhereIsItREICompat.getRecipeStacks(screen, alternateBehaviour);
                     if (!recipeStacks.isEmpty()) {
-                        new SearchRequest.Builder()
-                            .withItems(recipeStacks)
-                            .build()
-                            .trigger();
+                        SearchRequest.fromItemStacks(recipeStacks, alternateBehaviour).trigger();
+                        return;
                     }
                 }
             }

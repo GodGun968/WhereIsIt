@@ -2,9 +2,11 @@ package red.jackf.whereisit.search;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import red.jackf.whereisit.WhereIsIt;
@@ -12,8 +14,11 @@ import red.jackf.whereisit.util.EnchantmentWithOptionalLevel;
 
 import javax.swing.text.html.Option;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SearchRequest {
+    private static final List<Item> MOB_EFFECT_HOLDERS = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION, Items.TIPPED_ARROW);
+
     public static final String CRITERIA_TYPE_KEY = "CriteriaType";
     private final List<CompoundTag> criteria;
 
@@ -31,25 +36,39 @@ public class SearchRequest {
         var builder = new Builder()
             .withItems(Collections.singletonList(itemStack.getItem()));
 
-        if (itemStack.getItem() == Items.ENCHANTED_BOOK) {
+        // Add enchantments if alternate behaviour or an enchanted book.
+        if (itemStack.getItem() == Items.ENCHANTED_BOOK || alternateBehavior) {
             var enchantments = EnchantmentHelper.getEnchantments(itemStack);
             for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
                 builder.withEnchantment(entry.getKey(), entry.getValue());
             }
         }
 
-        if (alternateBehavior) {
-            if (itemStack.hasCustomHoverName()) {
-                builder.withName(itemStack.getHoverName().getString());
-            }
-
-            if (itemStack.getItem() != Items.ENCHANTED_BOOK) {
-                var enchantments = EnchantmentHelper.getEnchantments(itemStack);
-                for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
-                    builder.withEnchantment(entry.getKey(), entry.getValue());
-                }
+        // Add potion effects
+        if (MOB_EFFECT_HOLDERS.contains(itemStack.getItem())) {
+            for (MobEffectInstance mobEffect : PotionUtils.getMobEffects(itemStack)) {
+                builder.withMobEffect(mobEffect);
             }
         }
+
+        // Add custom names
+        if (alternateBehavior && itemStack.hasCustomHoverName()) {
+            builder.withName(itemStack.getHoverName().getString());
+        }
+        return builder.build();
+    }
+
+    public static SearchRequest fromItemStacks(List<ItemStack> itemStacks, boolean alternateBehaviour) {
+        var builder = new SearchRequest.Builder()
+            .withItems(itemStacks.stream().map(ItemStack::getItem).collect(Collectors.toList()));
+
+        // TODO: fork into multiple simultaenous requests instead of this hack
+        if (MOB_EFFECT_HOLDERS.contains(itemStacks.get(0).getItem())) {
+            for (MobEffectInstance mobEffect : PotionUtils.getMobEffects(itemStacks.get(0))) {
+                builder.withMobEffect(mobEffect);
+            }
+        }
+
         return builder.build();
     }
 
@@ -58,6 +77,7 @@ public class SearchRequest {
         System.out.println("Search: " + criteria);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private final List<CompoundTag> criteria = new ArrayList<>();
 
@@ -69,6 +89,10 @@ public class SearchRequest {
 
         public Builder withItems(List<Item> items) {
             return withCriteria(SearchCriteriaRegistry.ITEMS_KEY, SearchCriteriaRegistry.ITEMS.tagFromType(items));
+        }
+
+        public Builder withMobEffect(MobEffectInstance mobEffect) {
+            return withCriteria(SearchCriteriaRegistry.MOB_EFFECT_KEY, SearchCriteriaRegistry.MOB_EFFECT.tagFromType(mobEffect));
         }
 
         public Builder withEnchantment(Enchantment enchantment) {

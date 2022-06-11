@@ -63,7 +63,7 @@ public class WhereIsItREICompat {
     /**
      * Gets a hovered entry from a recipe screen; this can return multiple in some cases, or the workbenches.
      */
-    public static List<Item> getRecipeStacks(Screen screen, boolean onlyDisplayed) {
+    public static List<ItemStack> getRecipeStacks(Screen screen, boolean onlyDisplayed) {
         if (screen instanceof DisplayScreen displayScreen) {
             double gameScale = (double) Minecraft.getInstance().getWindow().getGuiScaledWidth() / (double) Minecraft.getInstance().getWindow().getWidth();
             double mouseX = Minecraft.getInstance().mouseHandler.xpos() * gameScale;
@@ -71,13 +71,13 @@ public class WhereIsItREICompat {
             for (Slot slot : Widgets.<Slot>walk(screen.children(), listener -> listener instanceof Slot slot && slot.containsMouse(mouseX, mouseY))) {
                 if (onlyDisplayed) {
                     if (slot.getCurrentEntry().getType() == VanillaEntryTypes.ITEM) {
-                        return Collections.singletonList(slot.getCurrentEntry().<ItemStack>castValue().getItem());
+                        return Collections.singletonList(slot.getCurrentEntry().castValue());
                     }
                 } else {
-                    List<Item> entries = new ArrayList<>();
+                    List<ItemStack> entries = new ArrayList<>();
                     for (EntryStack<?> stack : slot.getEntries()) {
                         if (stack.getType() == VanillaEntryTypes.ITEM) {
-                            entries.add(stack.<ItemStack>castValue().getItem());
+                            entries.add(stack.castValue());
                         }
                     }
                     if (entries.size() > 0) return entries;
