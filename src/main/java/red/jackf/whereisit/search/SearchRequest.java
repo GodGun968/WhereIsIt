@@ -1,7 +1,5 @@
 package red.jackf.whereisit.search;
 
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +24,7 @@ public class SearchRequest {
      */
     public static SearchRequest fromItemStack(ItemStack itemStack, boolean precise) {
         var builder = new Builder()
-            .withCriteria(SearchCriteriaRegistry.ITEM_ID_KEY, SearchCriteriaRegistry.ITEM_ID.fromItem(itemStack.getItem()));
+            .withCriteria(SearchCriteriaRegistry.ITEMS_KEY, SearchCriteriaRegistry.ITEMS.fromItem(itemStack.getItem()));
 
         if (precise) {
             if (itemStack.hasCustomHoverName()) {

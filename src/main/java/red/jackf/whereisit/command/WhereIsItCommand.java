@@ -9,7 +9,6 @@ import red.jackf.whereisit.search.SearchCriteriaRegistry;
 import static net.minecraft.commands.Commands.literal;
 import static net.minecraft.commands.Commands.argument;
 
-@Environment(EnvType.CLIENT)
 public class WhereIsItCommand {
 
     public static void setup() {

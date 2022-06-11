@@ -6,7 +6,7 @@
   "mixins": [
   ],
   "client": [
-    "MixinAbstractContainerScreen"
+    "AccessorAbstractContainerScreen"
   ],
   "injectors": {
     "defaultRequire": 1

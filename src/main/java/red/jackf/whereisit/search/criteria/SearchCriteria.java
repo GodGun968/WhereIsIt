@@ -16,5 +16,23 @@ public abstract class SearchCriteria {
 
     public interface Predicate {
         boolean test(ItemStack in);
+
+        static Predicate any(Iterable<Predicate> predicates) {
+            return stack -> {
+                for (var predicate : predicates) {
+                    if (predicate.test(stack)) return true;
+                }
+                return false;
+            };
+        }
+
+        static Predicate all(Iterable<Predicate> predicates) {
+            return stack -> {
+                for (var predicate : predicates) {
+                    if (!predicate.test(stack)) return false;
+                }
+                return true;
+            };
+        }
     }
 }

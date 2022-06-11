@@ -7,10 +7,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import red.jackf.whereisit.command.argument.ItemTagArgument;
 import red.jackf.whereisit.search.InvalidSearchCriteriaException;
 
-// TODO: Untested
 public class InTagSearchCriteria extends SearchCriteria {
     public static final String TAG_ID_KEY = "Tag";
 
@@ -31,11 +31,16 @@ public class InTagSearchCriteria extends SearchCriteria {
         if (id == null) {
             throw new InvalidSearchCriteriaException("Not a valid ResourceLocation: " + input);
         }
-        if (!Registry.ITEM.isKnownTagName(TagKey.create(Registry.ITEM_REGISTRY, id))) {
+        var key = TagKey.create(Registry.ITEM_REGISTRY, id);
+        if (!Registry.ITEM.isKnownTagName(key)) {
             throw new InvalidSearchCriteriaException("Unknown item tag: " + input);
         }
+        return fromTagKey(key);
+    }
+
+    public CompoundTag fromTagKey(TagKey<Item> key) {
         var tag = new CompoundTag();
-        tag.putString(TAG_ID_KEY, id.toString());
+        tag.putString(TAG_ID_KEY, key.location().toString());
         return tag;
     }
 

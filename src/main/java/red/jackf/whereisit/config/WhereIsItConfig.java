@@ -38,7 +38,7 @@ public class WhereIsItConfig implements ConfigData {
         public int searchRange = 32;
 
         @Comment("Command names - removing all of these disables the command.")
-        public List<String> commandNames = List.of("whereis", "wi", "find");
+        public List<String> commandNames = List.of("whereisit", "wii", "find");
     }
 
     public static <T extends ConfigData> ConfigSerializer<T> getSerializer(Config configDefinition, Class<T> configClass) {
