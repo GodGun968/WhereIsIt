@@ -32,9 +32,9 @@ public class EnchantmentSearchCriteria implements SearchCriteria<EnchantmentWith
 
         var targetLevel = tag.contains(ENCHANTMENT_LEVEL_KEY, Tag.TAG_INT) ? tag.getInt(ENCHANTMENT_LEVEL_KEY) : -1;
         return stack -> {
-            var stackLevel = EnchantmentHelper.getItemEnchantmentLevel(enchantment, stack);
-            if (stackLevel == 0) return false;
-            if (targetLevel == -1) return true;
+            var stackLevel = EnchantmentHelper.getEnchantments(stack).getOrDefault(enchantment, 0);
+            if (stackLevel == 0) return false; // does not have enchantment
+            if (targetLevel == -1) return true; // does have enchantment; any level
             return targetLevel == stackLevel;
         };
     }

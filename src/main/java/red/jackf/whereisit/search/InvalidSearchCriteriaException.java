@@ -4,6 +4,8 @@ package red.jackf.whereisit.search;
 import java.io.IOException;
 
 public class InvalidSearchCriteriaException extends IOException {
+    public InvalidSearchCriteriaException() {}
+
     public InvalidSearchCriteriaException(String message) {
         super(message);
     }

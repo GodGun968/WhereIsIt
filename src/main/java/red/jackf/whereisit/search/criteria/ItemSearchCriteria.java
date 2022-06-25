@@ -1,13 +1,11 @@
 package red.jackf.whereisit.search.criteria;
 
-import com.mojang.brigadier.arguments.ArgumentType;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Registry;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import red.jackf.whereisit.search.InvalidSearchCriteriaException;
 
 import java.util.ArrayList;
@@ -16,39 +14,30 @@ import java.util.List;
 /**
  * Matches by any of a list of item IDs.
  */
-public class ItemSearchCriteria implements SearchCriteria<List<Item>> {
-    public static final String ITEMS_KEY = "Items";
+public class ItemSearchCriteria implements SearchCriteria<Item> {
+    public static final String ITEM_KEY = "Item";
 
     @Override
     public Predicate predicateFromTag(CompoundTag tag) throws InvalidSearchCriteriaException {
-        if (!tag.contains(ITEMS_KEY, Tag.TAG_LIST)) {
-            throw new InvalidSearchCriteriaException("No item list passed in nbt: " + tag);
+        if (!tag.contains(ITEM_KEY, Tag.TAG_STRING)) {
+            throw new InvalidSearchCriteriaException("No item string passed in nbt: " + tag);
         }
-        var list = tag.getList(ITEMS_KEY, Tag.TAG_STRING);
-        List<Predicate> predicates = new ArrayList<>();
-        for (Tag element : list) {
-            if (element.getId() == Tag.TAG_STRING) {
-                var id = ResourceLocation.tryParse(tag.getAsString());
-                if (id == null) {
-                    throw new InvalidSearchCriteriaException("Not a valid ResourceLocation: " + tag.getString(ITEMS_KEY));
-                }
-                if (!Registry.ITEM.containsKey(id)) {
-                    throw new InvalidSearchCriteriaException("Unknown item: " + id);
-                }
-                predicates.add(stack -> Registry.ITEM.getKey(stack.getItem()).equals(id));
-            }
+        var str = tag.getString(ITEM_KEY);
+        var id = ResourceLocation.tryParse(str);
+        if (id == null) {
+            throw new InvalidSearchCriteriaException("Not a valid ResourceLocation: " + tag.getString(ITEM_KEY));
         }
-        return Predicate.any(predicates);
+        if (!Registry.ITEM.containsKey(id)) {
+            throw new InvalidSearchCriteriaException("Unknown item: " + id);
+        }
+        var item = Registry.ITEM.get(id);
+        return stack -> stack.getItem().equals(item);
     }
 
     @Override
-    public CompoundTag tagFromType(List<Item> input) {
+    public CompoundTag tagFromType(Item input) {
         var tag = new CompoundTag();
-        var list  = new ListTag();
-        for (Item item : input) {
-            list.add(StringTag.valueOf(Registry.ITEM.getKey(item).toString()));
-        }
-        tag.put(ITEMS_KEY, list);
+        tag.put(ITEM_KEY, StringTag.valueOf(Registry.ITEM.getKey(input).toString()));
         return tag;
     }
 }

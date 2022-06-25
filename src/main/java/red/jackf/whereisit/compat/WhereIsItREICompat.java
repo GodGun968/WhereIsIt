@@ -56,7 +56,7 @@ public class WhereIsItREICompat {
             }
         }
 
-        // TODO: support REI's Display recipes in the favourites menu
+        // TODO: support REI's DisplayEntry recipes in the favourites overlay
         return null;
     }
 
@@ -64,7 +64,7 @@ public class WhereIsItREICompat {
      * Gets a hovered entry from a recipe screen; this can return multiple in some cases, or the workbenches.
      */
     public static List<ItemStack> getRecipeStacks(Screen screen, boolean onlyDisplayed) {
-        if (screen instanceof DisplayScreen displayScreen) {
+        if (screen instanceof DisplayScreen) {
             double gameScale = (double) Minecraft.getInstance().getWindow().getGuiScaledWidth() / (double) Minecraft.getInstance().getWindow().getWidth();
             double mouseX = Minecraft.getInstance().mouseHandler.xpos() * gameScale;
             double mouseY = Minecraft.getInstance().mouseHandler.ypos() * gameScale;
