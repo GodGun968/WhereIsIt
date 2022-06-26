@@ -1,3 +1,4 @@
 {
-  "whereisit.command.argument.unknownTag": "Unknown tag: '%s'"
+  "whereisit.command.argument.unknownTag": "Unknown tag: '%s'",
+  "whereisit.chat.notInstalledOnServer": "Where Is It is not installed on this server. This message will not show again."
 }

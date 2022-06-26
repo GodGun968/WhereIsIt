@@ -5,6 +5,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.C2SPlayChannelEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -14,8 +18,11 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import red.jackf.whereisit.WhereIsIt;
 import red.jackf.whereisit.compat.WhereIsItREICompat;
 import red.jackf.whereisit.mixins.AccessorAbstractContainerScreen;
+import red.jackf.whereisit.networking.WhereIsItNetworking;
+import red.jackf.whereisit.search.SearchExecutor;
 import red.jackf.whereisit.search.SearchRequest;
 
 @Environment(EnvType.CLIENT)
@@ -29,6 +36,14 @@ public class WhereIsItClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ClientPlayNetworking.registerGlobalReceiver(WhereIsItNetworking.SHOW_FOUND_RESULTS_S2C, ((client1, handler1, buf, responseSender) -> {
+            WhereIsIt.LOGGER.info("Results: " + SearchExecutor.Result.fromByteBuf(buf));
+        }));
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            SearchRequest.resetShownNotInstalled();
+        });
+
         // Hovering over item and pressing Y on a stack
         ScreenEvents.BEFORE_INIT.register((client, _screen, scaledWidth, scaledHeight) -> ScreenKeyboardEvents.afterKeyPress(_screen).register((screen, key, scancode, modifiers) -> {
             if (SEARCH_KEY.matches(key, scancode)) {

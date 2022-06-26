@@ -1,16 +1,11 @@
 package red.jackf.whereisit.command;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import red.jackf.whereisit.WhereIsIt;
-import red.jackf.whereisit.search.SearchCriteriaRegistry;
 
 import static net.minecraft.commands.Commands.literal;
-import static net.minecraft.commands.Commands.argument;
 
 public class WhereIsItCommand {
 

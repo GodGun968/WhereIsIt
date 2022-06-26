@@ -1,4 +1,4 @@
-package red.jackf.whereisit.search;
+package red.jackf.whereisit.search.criteria;
 
 import net.minecraft.resources.ResourceLocation;
 import red.jackf.whereisit.WhereIsIt;
@@ -11,8 +11,8 @@ import java.util.Map;
 public abstract class SearchCriteriaRegistry {
     public static Map<ResourceLocation, SearchCriteria<?>> CRITERIA = new HashMap<>();
 
-    public static ResourceLocation ITEMS_KEY = WhereIsIt.id("item");
-    public static ItemSearchCriteria ITEMS = new ItemSearchCriteria();
+    public static ResourceLocation ITEM_KEY = WhereIsIt.id("item");
+    public static ItemSearchCriteria ITEM = new ItemSearchCriteria();
     public static ResourceLocation IN_TAG_KEY = WhereIsIt.id("tag");
     public static InTagSearchCriteria IN_TAG = new InTagSearchCriteria();
     public static ResourceLocation NAME_KEY = WhereIsIt.id("name");
@@ -23,7 +23,7 @@ public abstract class SearchCriteriaRegistry {
     public static MobEffectSearchCriteria MOB_EFFECT = new MobEffectSearchCriteria();
 
     public static void init() {
-        CRITERIA.put(ITEMS_KEY, ITEMS);
+        CRITERIA.put(ITEM_KEY, ITEM);
         CRITERIA.put(IN_TAG_KEY, IN_TAG);
         CRITERIA.put(NAME_KEY, NAME);
         CRITERIA.put(ENCHANTMENT_KEY, ENCHANTMENT);

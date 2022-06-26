@@ -5,11 +5,9 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Item;
@@ -19,7 +17,9 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import red.jackf.whereisit.WhereIsIt;
+import red.jackf.whereisit.networking.WhereIsItNetworking;
 import red.jackf.whereisit.search.criteria.SearchCriteria;
+import red.jackf.whereisit.search.criteria.SearchCriteriaRegistry;
 import red.jackf.whereisit.util.EnchantmentWithOptionalLevel;
 
 import java.util.*;
@@ -51,8 +51,7 @@ import java.util.*;
  *
  * Packet Structure consists of an integer representing the number of individual requests, followed by said requests.
  *
- * Each individual request consists of an integer representing the number of criteria, followed by said criteria, each
- * as CompoundTags.
+ * Each individual request consists of an integer representing the number of criteria, followed by said criteria, each as CompoundTags.
  * </pre>
  */
 public class SearchRequest {
@@ -62,6 +61,8 @@ public class SearchRequest {
     // Reason for set: don't send search requests with identical criteria e.g. REI brewing stand potion slots
     private final Set<Individual> individualRequests = new HashSet<>();
 
+    private static boolean shownNotInstalled = false;
+
     private SearchRequest() {}
 
     public SearchRequest withIndividual(Individual individualRequest) {
@@ -70,13 +71,18 @@ public class SearchRequest {
     }
 
     public void trigger() {
-        if (ClientPlayNetworking.canSend(WhereIsIt.CHANNEL_ID)) {
-            ClientPlayNetworking.send(WhereIsIt.CHANNEL_ID, toByteBuf());
+        if (ClientPlayNetworking.canSend(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S)) {
+            ClientPlayNetworking.send(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S, toByteBuf());
         } else {
-            if (Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().player.sendSystemMessage(Component.literal("Where Is It not detected on server."));
+            if (Minecraft.getInstance().player != null && !shownNotInstalled) {
+                Minecraft.getInstance().player.sendSystemMessage(Component.translatable("whereisit.chat.notInstalledOnServer"));
+                shownNotInstalled = true;
             }
         }
+    }
+
+    public static void resetShownNotInstalled() {
+        shownNotInstalled = false;
     }
 
     /**
@@ -197,7 +203,7 @@ public class SearchRequest {
             }
 
             public Builder withItem(Item item) {
-                return withCriteria(SearchCriteriaRegistry.ITEMS_KEY, SearchCriteriaRegistry.ITEMS.tagFromType(item));
+                return withCriteria(SearchCriteriaRegistry.ITEM_KEY, SearchCriteriaRegistry.ITEM.tagFromType(item));
             }
 
             public Builder withMobEffect(MobEffectInstance mobEffect) {

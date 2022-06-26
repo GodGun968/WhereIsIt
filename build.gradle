@@ -13,26 +13,28 @@ group = project.maven_group
 
 repositories {
 	maven {
-		name = "ParchmentMC"
+		name = "ParchmentMC" // Parchment Mappings
 		url = "https://maven.parchmentmc.org"
 		content {
 			includeGroupByRegex("org.parchmentmc.*")
 		}
 	}
 	maven {
-		name = "TerraformersMC"
+		name = "TerraformersMC" // ModMenu, EMI
 		url = "https://maven.terraformersmc.com/"
 		content {
 			includeGroupByRegex("com.terraformersmc.*")
+			includeGroupByRegex("dev.emi.*")
 		}
 	}
 	maven {
-		name = "Shedaniel Maven"
+		name = "Shedaniel Maven" // REI, Cloth Config
 		url = "https://maven.shedaniel.me/"
 		content {
 			includeGroupByRegex("me.shedaniel.*")
 		}
 	}
+	/*
 	maven {
 		name = "Jitpack"
 		url = "https://jitpack.io"
@@ -46,7 +48,7 @@ repositories {
 		content {
 			includeGroup("de.siphalor")
 		}
-	}
+	}*/
 	maven {
 		name = "Architectury"
 		url = "https://maven.architectury.dev/"
@@ -67,6 +69,9 @@ dependencies {
 
 	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 	modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
+
+
+	// modImplementation "dev.emi:emi:${project.emi_version}"
 
 	modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}")
 	modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
