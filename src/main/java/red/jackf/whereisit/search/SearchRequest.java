@@ -81,7 +81,7 @@ public class SearchRequest {
         }
     }
 
-    public static void resetShownNotInstalled() {
+    public static void resetShownNotInstalledMessage() {
         shownNotInstalled = false;
     }
 

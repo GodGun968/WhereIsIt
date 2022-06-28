@@ -1,24 +1,29 @@
 package red.jackf.whereisit.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.C2SPlayChannelEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import red.jackf.whereisit.WhereIsIt;
 import red.jackf.whereisit.compat.WhereIsItREICompat;
 import red.jackf.whereisit.mixins.AccessorAbstractContainerScreen;
 import red.jackf.whereisit.networking.WhereIsItNetworking;
@@ -36,12 +41,23 @@ public class WhereIsItClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientPlayNetworking.registerGlobalReceiver(WhereIsItNetworking.SHOW_FOUND_RESULTS_S2C, ((client1, handler1, buf, responseSender) -> {
-            WhereIsIt.LOGGER.info("Results: " + SearchExecutor.Result.fromByteBuf(buf));
+        ClientPlayNetworking.registerGlobalReceiver(WhereIsItNetworking.SHOW_FOUND_RESULTS_S2C, ((client, handler1, buf, responseSender) -> {
+            var results = SearchExecutor.Result.fromByteBuf(buf);
+
+            client.execute(() -> {
+                if (results.positions().size() > 0 && client.level != null) {
+                    HighlightRendering.setResults(results, client.level.getGameTime());
+                    if (client.screen != null) client.screen.onClose();
+                }
+            });
         }));
 
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            SearchRequest.resetShownNotInstalled();
+        HighlightRendering.setupEvents();
+
+        // Reset per-server data points
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            SearchRequest.resetShownNotInstalledMessage();
+            HighlightRendering.clearHighlights();
         });
 
         // Hovering over item and pressing Y on a stack
