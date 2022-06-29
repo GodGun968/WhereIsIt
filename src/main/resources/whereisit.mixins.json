@@ -6,7 +6,9 @@
   "mixins": [
   ],
   "client": [
-    "AccessorAbstractContainerScreen"
+    "AccessorAbstractContainerScreen",
+    "AccessorGuiComponent",
+    "MixinAbstractContainerScreen"
   ],
   "injectors": {
     "defaultRequire": 1

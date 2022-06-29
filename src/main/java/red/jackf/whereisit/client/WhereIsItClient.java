@@ -94,7 +94,7 @@ public class WhereIsItClient implements ClientModInitializer {
 
     @Nullable
     private static ItemStack getHoveredInventoryStack(AbstractContainerScreen<?> screen) {
-        Slot hoveredSlot = ((AccessorAbstractContainerScreen) screen).getHoveredSlot();
+        Slot hoveredSlot = ((AccessorAbstractContainerScreen) screen).whereisit$hoveredSlot();
         if (hoveredSlot != null && hoveredSlot.hasItem()) {
             return hoveredSlot.getItem();
         } else {

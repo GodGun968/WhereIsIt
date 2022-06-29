@@ -17,6 +17,7 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import red.jackf.whereisit.WhereIsIt;
+import red.jackf.whereisit.client.HighlightRendering;
 import red.jackf.whereisit.networking.WhereIsItNetworking;
 import red.jackf.whereisit.search.criteria.SearchCriteria;
 import red.jackf.whereisit.search.criteria.SearchCriteriaRegistry;
@@ -73,6 +74,8 @@ public class SearchRequest {
     public void trigger() {
         if (ClientPlayNetworking.canSend(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S)) {
             ClientPlayNetworking.send(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S, toByteBuf());
+            HighlightRendering.clear();
+            HighlightRendering.setLastRequest(fromByteBuf(toByteBuf()));
         } else {
             if (Minecraft.getInstance().player != null && !shownNotInstalled) {
                 Minecraft.getInstance().player.sendSystemMessage(Component.translatable("whereisit.chat.notInstalledOnServer"));

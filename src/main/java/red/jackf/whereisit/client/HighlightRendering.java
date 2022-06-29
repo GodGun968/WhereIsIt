@@ -3,18 +3,25 @@ package red.jackf.whereisit.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import red.jackf.whereisit.WhereIsIt;
+import red.jackf.whereisit.mixins.AccessorAbstractContainerScreen;
+import red.jackf.whereisit.mixins.AccessorGuiComponent;
 import red.jackf.whereisit.search.SearchExecutor;
 import red.jackf.whereisit.search.criteria.SearchCriteria;
 
@@ -52,7 +59,7 @@ public class HighlightRendering {
         LevelRenderer.addChainedFilledBoxVertices(builder, minX, minY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
     }
 
-    public static void drawHighlights(WorldRenderContext context) {
+    private static void drawHighlights(WorldRenderContext context) {
         if (results == null) return;
 
         var renderTime = context.world().getGameTime() + context.tickDelta();
@@ -103,7 +110,7 @@ public class HighlightRendering {
         poseStack.popPose();
     }
 
-    public static void drawNames(WorldRenderContext context) {
+    private static void drawNames(WorldRenderContext context) {
         if (results == null) return;
 
         for (var result : results.positions()) {
@@ -123,5 +130,35 @@ public class HighlightRendering {
         WorldRenderEvents.LAST.register(HighlightRendering::drawHighlights);
 
         WorldRenderEvents.AFTER_ENTITIES.register(HighlightRendering::drawNames);
+
+        // Slot highlights are rendered from MixinAbstractContainerScreen.class
+        /*ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (screen instanceof AbstractContainerScreen) {
+                ScreenEvents.afterRender(screen).register((containerScreen, poseStack, mouseX, mouseY, tickDelta) -> {
+                    drawSlots((AbstractContainerScreen<?>) containerScreen, poseStack, tickDelta);
+                });
+            }
+        });*/
+    }
+
+    public static void drawSlots(AbstractContainerScreen<?> containerScreen, PoseStack poseStack) {
+        if (lastRequest == null) return;
+
+        var guiComponent = (AccessorGuiComponent) containerScreen;
+        var menuAccess = (MenuAccess<?>) containerScreen;
+        for (Slot slot : menuAccess.getMenu().slots) {
+            if (slot.hasItem()) {
+                var stack = slot.getItem();
+                if (lastRequest.test(stack)) {
+                    var x = slot.x + ((AccessorAbstractContainerScreen) containerScreen).whereisit$getLeftPos();
+                    var y = slot.y + ((AccessorAbstractContainerScreen) containerScreen).whereisit$getTopPos();
+
+
+                    var colour = 0x80FF80FF;
+
+                    guiComponent.whereisit$fillGradient(poseStack, x - 1, y - 1, x + 17, y + 17, colour, colour, containerScreen.getBlitOffset());
+                }
+            }
+        }
     }
 }
