@@ -38,7 +38,7 @@ public class WhereIsItClient implements ClientModInitializer {
 
             client.execute(() -> {
                 if (results.positions().size() > 0 && client.level != null) {
-                    HighlightRendering.setResults(results, client.level.getGameTime());
+                    HighlightRendering.setResults(results);
                     if (client.screen != null) client.screen.onClose();
                 }
             });

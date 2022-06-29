@@ -73,8 +73,11 @@ public class SearchRequest {
 
     public void trigger() {
         if (ClientPlayNetworking.canSend(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S)) {
+            HighlightRendering.clear();
             ClientPlayNetworking.send(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S, toByteBuf());
-            HighlightRendering.setLastRequest(fromByteBuf(toByteBuf()));
+            var level = Minecraft.getInstance().level;
+            if (level != null)
+                HighlightRendering.setLastRequest(fromByteBuf(toByteBuf()), level.getGameTime());
         } else {
             if (Minecraft.getInstance().player != null && !shownNotInstalled) {
                 Minecraft.getInstance().player.sendSystemMessage(Component.translatable("whereisit.chat.notInstalledOnServer"));

@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.GameRenderer;
@@ -34,13 +35,13 @@ public class HighlightRendering {
     private static SearchCriteria.Predicate lastRequest = null;
     private static long resultsGameTime = -1;
 
-    public static void setResults(SearchExecutor.Result results, long resultsGameTime) {
+    public static void setResults(SearchExecutor.Result results) {
         HighlightRendering.results = results;
-        HighlightRendering.resultsGameTime = resultsGameTime;
     }
 
-    public static void setLastRequest(SearchCriteria.Predicate lastRequest) {
+    public static void setLastRequest(SearchCriteria.Predicate lastRequest, long resultsGameTime) {
         HighlightRendering.lastRequest = lastRequest;
+        HighlightRendering.resultsGameTime = resultsGameTime;
     }
 
     public static void clear() {
@@ -83,7 +84,7 @@ public class HighlightRendering {
         bufferBuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
 
         for (var result : results.positions()) {
-            drawCube(bufferBuilder, result.pos(), camPos, 0.5f, colour.x(), colour.y(), colour.z(), alpha);
+            drawCube(bufferBuilder, result.pos(), camPos, 0.625f, colour.x(), colour.y(), colour.z(), alpha);
         }
 
         tesselator.end();
@@ -124,7 +125,6 @@ public class HighlightRendering {
     public static void drawSlots(AbstractContainerScreen<?> containerScreen, PoseStack poseStack) {
         if (lastRequest == null) return;
 
-        var guiComponent = (AccessorGuiComponent) containerScreen;
         var menuAccess = (MenuAccess<?>) containerScreen;
         for (Slot slot : menuAccess.getMenu().slots) {
             if (slot.hasItem()) {
@@ -133,19 +133,19 @@ public class HighlightRendering {
                     var x = slot.x + ((AccessorAbstractContainerScreen) containerScreen).whereisit$getLeftPos();
                     var y = slot.y + ((AccessorAbstractContainerScreen) containerScreen).whereisit$getTopPos();
 
-                    var colour = packVec3Colour(getCurrentRainbowColour());
+                    var colour = packVec3Colour(getCurrentRainbowColour(), 0x80);
 
-                    guiComponent.whereisit$fillGradient(poseStack, x - 1, y - 1, x + 17, y + 17, colour, colour, containerScreen.getBlitOffset());
+                    AccessorGuiComponent.whereisit$fillGradient(poseStack, x - 1, y - 1, x + 17, y + 17, colour, colour, containerScreen.getBlitOffset());
                 }
             }
         }
     }
 
-    public static int packVec3Colour(Vector3f colour) {
+    public static int packVec3Colour(Vector3f colour, int alpha) {
         int r = (int) (colour.x() * 255);
         int g = (int) (colour.y() * 255);
         int b = (int) (colour.z() * 255);
-        return ((32768 + r << 8) + g << 8) + b;
+        return (((alpha << 8) + r << 8) + g << 8) + b;
     }
 
     public static Vector3f getCurrentRainbowColour() {
@@ -173,6 +173,7 @@ public class HighlightRendering {
 
     public static void setupEvents() {
         ClientTickEvents.END_WORLD_TICK.register(world -> {
+            if (resultsGameTime == -1) return;
             if (world.getGameTime() - resultsGameTime >= WhereIsIt.CONFIG.client.highlightFadeTime) {
                 clear();
             }
@@ -183,5 +184,12 @@ public class HighlightRendering {
         WorldRenderEvents.AFTER_ENTITIES.register(HighlightRendering::drawNames);
 
         // Slot highlights are rendered from MixinAbstractContainerScreen.class
+    }
+
+    public static void drawSlot(PoseStack poseStack, Slot slot) {
+        if (slot.hasItem() && lastRequest != null && lastRequest.test(slot.getItem())) {
+            var colour = packVec3Colour(getCurrentRainbowColour(), 0x80);
+            GuiComponent.fill(poseStack, slot.x - 1, slot.y - 1, slot.x + 17, slot.y + 17, colour);
+        }
     }
 }
