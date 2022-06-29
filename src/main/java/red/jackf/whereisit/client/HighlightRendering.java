@@ -2,6 +2,7 @@ package red.jackf.whereisit.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.math.Vector3f;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -15,7 +16,9 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -64,9 +67,7 @@ public class HighlightRendering {
 
         var renderTime = context.world().getGameTime() + context.tickDelta();
 
-        var red = 1f;
-        var green = 0.5f;
-        var blue = 1f;
+        var colour = getCurrentRainbowColour();
         var alpha = 0.8f * Math.max((1f - (renderTime - resultsGameTime) / WhereIsIt.CONFIG.client.highlightFadeTime), 0);
 
         var camPos = context.camera().getPosition();
@@ -82,7 +83,7 @@ public class HighlightRendering {
         bufferBuilder.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
 
         for (var result : results.positions()) {
-            drawCube(bufferBuilder, result.pos(), camPos, 0.5f, red, green, blue, alpha);
+            drawCube(bufferBuilder, result.pos(), camPos, 0.5f, colour.x(), colour.y(), colour.z(), alpha);
         }
 
         tesselator.end();
@@ -120,27 +121,6 @@ public class HighlightRendering {
         }
     }
 
-    public static void setupEvents() {
-        ClientTickEvents.END_WORLD_TICK.register(world -> {
-            if (world.getGameTime() - resultsGameTime >= WhereIsIt.CONFIG.client.highlightFadeTime) {
-                clear();
-            }
-        });
-
-        WorldRenderEvents.LAST.register(HighlightRendering::drawHighlights);
-
-        WorldRenderEvents.AFTER_ENTITIES.register(HighlightRendering::drawNames);
-
-        // Slot highlights are rendered from MixinAbstractContainerScreen.class
-        /*ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof AbstractContainerScreen) {
-                ScreenEvents.afterRender(screen).register((containerScreen, poseStack, mouseX, mouseY, tickDelta) -> {
-                    drawSlots((AbstractContainerScreen<?>) containerScreen, poseStack, tickDelta);
-                });
-            }
-        });*/
-    }
-
     public static void drawSlots(AbstractContainerScreen<?> containerScreen, PoseStack poseStack) {
         if (lastRequest == null) return;
 
@@ -153,12 +133,55 @@ public class HighlightRendering {
                     var x = slot.x + ((AccessorAbstractContainerScreen) containerScreen).whereisit$getLeftPos();
                     var y = slot.y + ((AccessorAbstractContainerScreen) containerScreen).whereisit$getTopPos();
 
-
-                    var colour = 0x80FF80FF;
+                    var colour = packVec3Colour(getCurrentRainbowColour());
 
                     guiComponent.whereisit$fillGradient(poseStack, x - 1, y - 1, x + 17, y + 17, colour, colour, containerScreen.getBlitOffset());
                 }
             }
         }
+    }
+
+    public static int packVec3Colour(Vector3f colour) {
+        int r = (int) (colour.x() * 255);
+        int g = (int) (colour.y() * 255);
+        int b = (int) (colour.z() * 255);
+        return ((32768 + r << 8) + g << 8) + b;
+    }
+
+    public static Vector3f getCurrentRainbowColour() {
+        var hue = (System.currentTimeMillis() / 50) % 360;
+        var factor = 1 - Math.abs(Mth.positiveModulo(hue / 60f, 2) - 1);
+
+        int segment = (int) (hue / 60);
+        switch (segment) {
+            case 0:
+                return new Vector3f(1, factor, 0);
+            case 1:
+                return new Vector3f(factor, 1, 0);
+            case 2:
+                return new Vector3f(0, 1, factor);
+            case 3:
+                return new Vector3f(0, factor, 1);
+            case 4:
+                return new Vector3f(factor, 0, 1);
+            case 5:
+                return new Vector3f(1, 0, factor);
+        }
+
+        throw new RuntimeException("Exhausted switch statement: H" + hue + ", F" + factor);
+    }
+
+    public static void setupEvents() {
+        ClientTickEvents.END_WORLD_TICK.register(world -> {
+            if (world.getGameTime() - resultsGameTime >= WhereIsIt.CONFIG.client.highlightFadeTime) {
+                clear();
+            }
+        });
+
+        WorldRenderEvents.LAST.register(HighlightRendering::drawHighlights);
+
+        WorldRenderEvents.AFTER_ENTITIES.register(HighlightRendering::drawNames);
+
+        // Slot highlights are rendered from MixinAbstractContainerScreen.class
     }
 }

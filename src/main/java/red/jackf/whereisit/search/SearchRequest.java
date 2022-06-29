@@ -74,7 +74,6 @@ public class SearchRequest {
     public void trigger() {
         if (ClientPlayNetworking.canSend(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S)) {
             ClientPlayNetworking.send(WhereIsItNetworking.SEARCH_FOR_ITEM_C2S, toByteBuf());
-            HighlightRendering.clear();
             HighlightRendering.setLastRequest(fromByteBuf(toByteBuf()));
         } else {
             if (Minecraft.getInstance().player != null && !shownNotInstalled) {
