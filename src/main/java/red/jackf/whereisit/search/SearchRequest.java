@@ -171,8 +171,12 @@ public class SearchRequest {
          * @return Individual Search Request
          */
         public static Individual fromItemStack(ItemStack itemStack, boolean alternateBehavior) {
-            var builder = new Builder()
-                .withItem(itemStack.getItem());
+            var builder = new Builder();
+
+            // if it's an enchanted book, then only search the enchantment unless we specifically want a book via alternateBehavior
+            if (itemStack.getItem() != Items.ENCHANTED_BOOK || alternateBehavior) {
+                builder.withItem(itemStack.getItem());
+            }
 
             // Add enchantments if alternate behaviour or an enchanted book.
             if (itemStack.getItem() == Items.ENCHANTED_BOOK || alternateBehavior) {
@@ -189,7 +193,7 @@ public class SearchRequest {
                 }
             }
 
-            // Add custom names
+            // Add custom names for alternateBehavior
             if (alternateBehavior && itemStack.hasCustomHoverName()) {
                 builder.withName(itemStack.getHoverName().getString());
             }

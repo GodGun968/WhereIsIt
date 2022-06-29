@@ -77,7 +77,7 @@ public class WhereIsItClient implements ClientModInitializer {
                     // Favourite List
                     var favouriteListStack = WhereIsItREICompat.getFavouriteListStack();
                     if (favouriteListStack != null) {
-                        SearchRequest.fromItemStack(favouriteListStack, !alternateBehaviour).trigger();
+                        SearchRequest.fromItemStack(favouriteListStack, alternateBehaviour).trigger();
                         return;
                     }
 
